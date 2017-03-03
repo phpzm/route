@@ -1,0 +1,35 @@
+{
+  "name": "phpzm/route",
+  "description": "Simples Route package",
+  "minimum-stability": "dev",
+  "keywords": [
+    "php",
+    "framework",
+    "api",
+    "simples"
+  ],
+  "homepage": "https://github.com/phpzm/route",
+  "license": "MIT",
+  "version": "1.0.0",
+  "type": "package",
+  "authors": [
+    {
+      "name": "William",
+      "email": "wilcorrea@gmail.com"
+    },
+    {
+      "name": "Ezio",
+      "email": "ezioadsr@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "phpzm/http": "dev-master",
+    "phpzm/kernel": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "Simples\\Route\\": "src/"
+    }
+  }
+}
