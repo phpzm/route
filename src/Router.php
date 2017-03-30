@@ -140,7 +140,7 @@ class Router extends Engine
     public function api($uri, $class, $options = [])
     {
         $resource = [
-            ['method' => 'GET', 'uri' => '', 'callable' => 'get'],
+            ['method' => 'GET', 'uri' => '', 'callable' => 'search'],
             ['method' => 'GET', 'uri' => ':id', 'callable' => 'get'],
             ['method' => 'POST', 'uri' => '', 'callable' => 'post'],
             ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put'],

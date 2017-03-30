@@ -70,7 +70,7 @@ class Engine
     public function __construct(bool $labels = false, string $contentType = null, array $headers = null)
     {
         $this->labels = $labels;
-        $this->type = of($contentType, Response::CONTENT_TYPE_PLAIN);
+        $this->type = coalesce($contentType, Response::CONTENT_TYPE_PLAIN);
         $this->headers = $headers;
     }
 
