@@ -60,7 +60,6 @@ class Engine
     private $headers;
 
     /**
-     * @SuppressWarnings("BooleanArgumentFlag")
      *
      * Engine constructor.
      * @param bool $labels
