@@ -4,7 +4,6 @@ namespace Simples\Route;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Simples\Http\Response;
 use Simples\Kernel\App;
 use Simples\Kernel\Container;
 
@@ -12,262 +11,39 @@ use Simples\Kernel\Container;
  * Class Engine
  * @package Simples\Route
  */
-class Engine
+class Engine extends Base
 {
     /**
-     * @trait Share
+     * @param string $type
+     * @param mixed $callback
      */
-    use Sharable;
-
-    /**
-     * @var array honorable mention ['options']
-     */
-    const ALL = ['get', 'post', 'put', 'patch', 'delete'];
-
-    /**
-     * @var array
-     */
-    private $routes = [];
-
-    /**
-     * @var array
-     */
-    public $debug = [];
-
-    /**
-     * @var array
-     */
-    protected $otherWise = [];
-
-    /**
-     * @var string
-     */
-    private $preFlight = 'options';
-
-    /**
-     * @var bool
-     */
-    protected $labels;
-
-    /**
-     * @var string
-     */
-    private $type;
-
-    /**
-     * @var array
-     */
-    private $headers;
-
-    /**
-     *
-     * Engine constructor.
-     * @param bool $labels
-     * @param string|null $contentType
-     * @param array|null $headers
-     */
-    public function __construct(bool $labels = false, string $contentType = null, array $headers = null)
-    {
-        $this->labels = $labels;
-        $this->type = coalesce($contentType, Response::CONTENT_TYPE_PLAIN);
-        $this->headers = $headers;
-    }
-
-    /**
-     * @param $method
-     * @param $arguments
-     * @return $this
-     */
-    final public function __call($method, $arguments)
-    {
-        if (!isset($arguments[1])) {
-            return $this;
-        }
-        $uris = $arguments[0];
-        if (!is_array($uris)) {
-            $uris = [$uris];
-        }
-        $callback = $arguments[1];
-        $options = isset($arguments[2]) ? $arguments[2] : [];
-
-        foreach ($uris as $uri) {
-            $this->on($method, $uri, $callback, $options);
-        }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    final public function clear()
-    {
-        $this->routes = [];
-
-        return $this;
-    }
-
-    /**
-     * @param $methods
-     * @param $uri
-     * @param $callback
-     * @param array $options
-     * @return $this
-     */
-    final public function on($methods, $uri, $callback, $options = [])
-    {
-        if ($methods === '*') {
-            $methods = self::ALL;
-        }
-        if (gettype($methods) === 'string') {
-            $methods = explode(',', $methods);
-        }
-
-        foreach ($methods as $method) {
-            $method = strtolower($method);
-            if (!isset($this->routes[$method])) {
-                $this->routes[$method] = [];
-            }
-            $pattern = $this->pattern($uri);
-
-            $route = $pattern['pattern'] . '$/';
-
-            $this->routes[$method][$route] = [
-                'uri' => $uri, 'callback' => $callback, 'options' => $options, 'labels' => $pattern['labels']
-            ];
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param $method
-     * @param $uri
-     * @param $options
-     * @return null
-     */
-    final public function match($method, $uri, $options = [])
-    {
-        $method = strtolower($method);
-
-        $path = null;
-        $callback = null;
-        $data = [];
-
-        foreach ($this->routes as $index => $routes) {
-            foreach ($routes as $path => $context) {
-
-                // TODO: simplify this
-                if (preg_match($path, $uri, $parameters)) {
-                    $options = array_merge($context['options'], $options);
-
-                    if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
-                        array_shift($parameters);
-
-                        $callback = $context['callback'];
-                        $labels = $context['labels'];
-                        $data = $parameters;
-                        if ($this->labels || (isset($options['labels']) ? $options['labels'] : false)) {
-                            foreach ($labels as $key => $label) {
-                                $data[$label] = $parameters[$key];
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        $parameters = array_merge($data, ['data' => $this->data]);
-
-        if (!$callback && isset($this->otherWise[$method])) {
-            $context = $this->otherWise[$method];
-
-            $path = '';
-            $callback = $context['callback'];
-            $options = array_merge($context['options'], $options);
-        }
-
-        return $this->resolve($method, $uri, $path, $callback, $parameters, $options);
-    }
-
-    /**
-     * @param $method
-     * @param $uri
-     * @param $path
-     * @param $callback
-     * @param $parameters
-     * @param $options
-     * @return Match
-     */
-    protected function resolve($method, $uri, $path, $callback, $parameters, $options)
-    {
-        // TODO: simplify
-        $group = off($options, 'group');
-
-        if ($group) {
-            unset($options['group']);
-
-            $this->clear();
-
-            $this->deep($group['type'], $callback);
-
-            $end = str_replace_first($group['start'], '', $uri);
-            $uri = (substr($end, 0, 1) === '/') ? $end : '/' . $end;
-
-            return $this->match($method, $uri, $options);
-        }
-
-        if (isset($options['type']) || $this->type) {
-            App::options('type', isset($options['type']) ? $options['type'] : $this->type);
-        }
-        if (isset($options['headers']) || $this->headers) {
-            $headers = $this->headers;
-            if (!$headers) {
-                $headers = [];
-            }
-            if (isset($options['headers'])) {
-                $headers = array_merge($headers, $options['headers']);
-            }
-            App::options('headers', $headers);
-        }
-
-        return new Match($method, $uri, $path, $callback, $parameters, $options);
-    }
-
-    /**
-     * @param $type
-     * @param $callback
-     */
-    protected function deep($type, $callback)
+    protected function deep(string $type, $callback)
     {
         switch ($type) {
-            case 'file': {
+            case 'file':
                 $this->load(path(true, $callback));
                 break;
-            }
-            case 'files': {
+            case 'files':
                 foreach ($callback as $file) {
                     $this->load(path(true, $file));
                 }
                 break;
-            }
-            case 'dir': {
+            case 'dir':
                 $files = $this->files($callback);
                 foreach ($files as $file) {
                     $this->load(path(true, $file));
                 }
                 break;
-            }
-            case 'callable': {
-                call_user_func_array($callback, Container::box()->resolveFunctionParameters($callback, [$this]));
+            case 'callable':
+                call_user_func_array($callback, Container::instance()->resolveFunctionParameters($callback, [$this]));
                 break;
-            }
         }
     }
 
     /**
-     * @param $filename
+     * @param string $filename
      */
-    public function load($filename)
+    public function load(string $filename)
     {
         if (file_exists($filename)) {
             /** @noinspection PhpIncludeInspection */
@@ -279,10 +55,10 @@ class Engine
     }
 
     /**
-     * @param $dir
+     * @param string $dir
      * @return array
      */
-    public function files($dir)
+    public function files(string $dir)
     {
         $files = [];
 
@@ -292,8 +68,8 @@ class Engine
             return $files;
         }
 
-        $resources = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir),
-            RecursiveIteratorIterator::SELF_FIRST);
+        $directory = new RecursiveDirectoryIterator($dir);
+        $resources = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::SELF_FIRST);
         foreach ($resources as $resource) {
             if (is_dir($resource->getFilename())) {
                 continue;
@@ -309,107 +85,139 @@ class Engine
     }
 
     /**
-     * @param $uri
-     * @return array
+     * @param string $method
+     * @param string $uri
+     * @param array $options
+     * @return Match
      */
-    public function pattern($uri)
+    final public function match(string $method, string $uri, array $options = [])
     {
-        $labels = [];
+        $method = strtolower($method);
 
-        $uri = (substr($uri, 0, 1) !== '/') ? '/' . $uri : $uri;
-        $peaces = explode('/', $uri);
-
-        foreach ($peaces as $key => $value) {
-            $peaces[$key] = str_replace('*', '(.*)', $peaces[$key]);
-            if (strpos($value, ':') === 0) {
-                $peaces[$key] = '(\w+)';
-                $labels[] = substr($value, 1);
-            } elseif (strpos($value, '{') === 0) {
-                $peaces[$key] = '(\w+)';
-                $labels[] = substr($value, 1, -1);
+        $path = null;
+        $callback = null;
+        $data = [];
+        foreach ($this->routes as $index => $routes) {
+            $found = $this->search($routes, $uri, $options, $method, $index);
+            if ($found) {
+                App::log($found);
+                $path = $found['path'];
+                $callback = $found['callback'];
+                $data = $found['data'];
+                $options = $found['options'];
+                break;
             }
         }
-        if ($peaces[(count($peaces) - 1)]) {
-            $peaces[] = '';
+        $parameters = array_merge($data, ['data' => $this->data]);
+
+        if (!$callback && isset($this->otherWise[$method])) {
+            $context = $this->otherWise[$method];
+            $path = '';
+            $callback = $context['callback'];
+            $options = array_merge($context['options'], $options);
         }
-        $pattern = str_replace('/', '\/', implode('/', $peaces));
-        return [
-            'pattern' => '/^' . $pattern,
-            'labels' => $labels
-        ];
+
+        return $this->resolve($method, $uri, $path, $callback, $parameters, $options);
     }
 
     /**
-     * @param array $trace
-     * @return array
+     * @param $routes
+     * @param $uri
+     * @param $options
+     * @param $method
+     * @param $index
+     * @return array|null
      */
-    public function getTrace($trace = [])
+    private function search($routes, $uri, $options, $method, $index)
     {
-        $groups = [];
-        foreach ($this->routes as $method => $paths) {
-            foreach ($paths as $route) {
-                $trace[] = [
-                    'method' => $method,
-                    'uri' => $route['uri'],
-                    'options' => $route['options'],
-                    'callback' => stripslashes(json_encode($route['callback']))
-                ];
-                $group = off($route['options'], 'group');
-                if ($group) {
-                    $groups[] = [
-                        'type' => $group['type'], 'callback' => $route['callback']
+        foreach ($routes as $path => $context) {
+            if (preg_match($path, $uri, $matches)) {
+                $options = array_merge($context['options'], $options);
+
+                if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
+                    array_shift($matches);
+                    return [
+                        'path' => $path,
+                        'callback' => $context['callback'],
+                        'data' => $this->parseData($matches, $context['labels']),
+                        'options' => $options
                     ];
                 }
             }
         }
+        return null;
+    }
 
-        foreach ($this->otherWise as $method => $othersWise) {
-            $trace[] = [
-                'method' => $method,
-                'uri' => '/other-wise',
-                'options' => $othersWise['options'],
-                'callback' => stripslashes(json_encode($othersWise['callback']))
-            ];
-        }
-        $this->otherWise = [];
-
-        if (count($groups)) {
-            foreach ($groups as $group) {
-                $this->clear();
-                $this->deep($group['type'], $group['callback']);
-
-                $trace = $this->getTrace($trace);
+    /**
+     * @param array $matches
+     * @param array $labels
+     * @return array
+     */
+    private function parseData(array $matches, array $labels)
+    {
+        $data = $matches;
+        if ($this->labels || (isset($options['labels']) ? $options['labels'] : false)) {
+            foreach ($labels as $key => $label) {
+                $data[$label] = $matches[$key];
             }
         }
-
-        return $trace;
+        return $data;
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $method
+     * @param string $uri
+     * @param string $path
+     * @param callable $callback
+     * @param array $parameters
+     * @param array $options
+     * @return Match
      */
-    public function addHeader($name, $value)
+    protected function resolve(string $method, string $uri, string $path, $callback, $parameters, $options)
     {
-        if (!is_array($this->headers)) {
-            $this->headers = [];
+        $group = off($options, 'group');
+
+        if ($group) {
+            unset($options['group']);
+
+            $this->clear();
+
+            $this->deep($group['type'], $callback);
+
+            $end = str_replace_first($group['start'], '', $uri);
+            $uri = (substr($end, 0, 1) === '/') ? $end : '/' . $end;
+
+            return $this->match($method, $uri, $options);
         }
-        $this->headers[$name] = $value;
+
+        return $this->matchGroup($method, $uri, $path, $callback, $parameters, $options);
     }
 
     /**
-     * @return string
+     * @param string $method
+     * @param string $uri
+     * @param string $path
+     * @param callable $callback
+     * @param array $parameters
+     * @param array $options
+     * @return Match
      */
-    public function getType(): string
+    private function matchGroup(string $method, string $uri, string $path, $callback, $parameters, $options)
     {
-        return $this->type;
-    }
+        if (isset($options['type']) || $this->type) {
+            App::options('type', isset($options['type']) ? $options['type'] : $this->type);
+        }
+        if (isset($options['headers']) || $this->headers) {
+            $headers = $this->headers;
+            if (!$headers) {
+                $headers = [];
+            }
+            if (isset($options['headers'])) {
+                $headers = array_merge($headers, $options['headers']);
+            }
+            App::options('headers', $headers);
+        }
 
-    /**
-     * @param string $type
-     */
-    public function setType(string $type)
-    {
-        $this->type = $type;
+        return new Match($method, $uri, $path, $callback, $parameters, $options);
     }
 }

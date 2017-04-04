@@ -41,16 +41,11 @@ class Router extends Engine
         $type = '';
 
         switch (gettype($context)) {
-            case TYPE_ARRAY: {
-                foreach ($context as $index => $file) {
-                    if (!file_exists(path(true, $file))) {
-                        unset($context[$index]);
-                    }
-                }
+            case TYPE_ARRAY:
+                $context = $this->fixGroupArray($context);
                 $type = 'files';
                 break;
-            }
-            case TYPE_STRING: {
+            case TYPE_STRING:
                 if (file_exists(path(true, $context))) {
                     $type = 'file';
                     if (is_dir(path(true, $context))) {
@@ -58,13 +53,11 @@ class Router extends Engine
                     }
                 }
                 break;
-            }
-            case TYPE_OBJECT: {
+            case TYPE_OBJECT:
                 if (is_callable($context)) {
                     $type = 'callable';
                 }
                 break;
-            }
         }
         $start = (substr($start, 0, 1) === '/' ? $start : '/' . $start);
         $start = (substr($start, -1) === '/' ? substr($start, 0, -1) : $start);
@@ -154,5 +147,19 @@ class Router extends Engine
         }
 
         return $this;
+    }
+
+    /**
+     * @param array $context
+     * @return array
+     */
+    private function fixGroupArray(array $context)
+    {
+        foreach ($context as $index => $file) {
+            if (!file_exists(path(true, $file))) {
+                unset($context[$index]);
+            }
+        }
+        return $context;
     }
 }
