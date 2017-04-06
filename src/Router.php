@@ -134,9 +134,10 @@ class Router extends Engine
         $resource = [
             ['method' => 'GET', 'uri' => '', 'callable' => 'search'],
             ['method' => 'GET', 'uri' => ':id', 'callable' => 'get'],
+            ['method' => 'PATCH', 'uri' => ':id/recycle', 'callable' => 'recycle'],
             ['method' => 'POST', 'uri' => '', 'callable' => 'post'],
             ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put'],
-            ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete'],
+            ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete']
         ];
 
         $separator = App::options('separator');
