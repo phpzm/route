@@ -176,21 +176,7 @@ class Base
     {
         $groups = [];
         foreach ($this->routes as $method => $paths) {
-            foreach ($paths as $route) {
-                $trace[] = [
-                    'method' => $method,
-                    'uri' => $route['uri'],
-                    'options' => $route['options'],
-                    'callback' => stripslashes(json_encode($route['callback']))
-                ];
-                $group = off($route['options'], 'group');
-                if (!$group) {
-                    continue;
-                }
-                $groups[] = [
-                    'type' => $group['type'], 'callback' => $route['callback']
-                ];
-            }
+            $this->parseTrace($trace, $groups, $method, $paths);
         }
 
         foreach ($this->otherWise as $method => $othersWise) {
@@ -213,6 +199,31 @@ class Base
         }
 
         return $trace;
+    }
+
+    /**
+     * @param $trace
+     * @param $groups
+     * @param $method
+     * @param $paths
+     */
+    private function parseTrace(&$trace, &$groups, $method, $paths)
+    {
+        foreach ($paths as $route) {
+            $trace[] = [
+                'method' => $method,
+                'uri' => $route['uri'],
+                'options' => $route['options'],
+                'callback' => stripslashes(json_encode($route['callback']))
+            ];
+            $group = off($route['options'], 'group');
+            if (!$group) {
+                continue;
+            }
+            $groups[] = [
+                'type' => $group['type'], 'callback' => $route['callback']
+            ];
+        }
     }
 
     /**
