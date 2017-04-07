@@ -55,12 +55,11 @@ class Router extends Engine
                     $type = 'dir';
                 }
                 break;
-            case TYPE_OBJECT:
-                if (is_callable($context)) {
-                    $type = 'callable';
-                }
-                break;
         }
+        if (is_callable($context)) {
+            $type = 'callable';
+        }
+
         $start = (substr($start, 0, 1) === '/' ? $start : '/' . $start);
         $start = (substr($start, -1) === '/' ? substr($start, 0, -1) : $start);
 
