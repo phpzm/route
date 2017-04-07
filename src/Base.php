@@ -28,7 +28,7 @@ class Base
     /**
      * @var array
      */
-    public $debug = [];
+    protected $debug = [];
 
     /**
      * @var array
@@ -151,7 +151,9 @@ class Base
             if (strpos($value, ':') === 0) {
                 $peaces[$key] = '(\w+)';
                 $labels[] = substr($value, 1);
-            } elseif (strpos($value, '{') === 0) {
+                continue;
+            }
+            if (strpos($value, '{') === 0) {
                 $peaces[$key] = '(\w+)';
                 $labels[] = substr($value, 1, -1);
             }
@@ -182,11 +184,12 @@ class Base
                     'callback' => stripslashes(json_encode($route['callback']))
                 ];
                 $group = off($route['options'], 'group');
-                if ($group) {
-                    $groups[] = [
-                        'type' => $group['type'], 'callback' => $route['callback']
-                    ];
+                if (!$group) {
+                    continue;
                 }
+                $groups[] = [
+                    'type' => $group['type'], 'callback' => $route['callback']
+                ];
             }
         }
 

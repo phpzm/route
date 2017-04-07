@@ -46,11 +46,13 @@ class Router extends Engine
                 $type = 'files';
                 break;
             case TYPE_STRING:
-                if (file_exists(path(true, $context))) {
+                $path = path(true, $context);
+                $isFile = file_exists($path);
+                if ($isFile) {
                     $type = 'file';
-                    if (is_dir(path(true, $context))) {
-                        $type = 'dir';
-                    }
+                }
+                if ($isFile && is_dir($path)) {
+                    $type = 'dir';
                 }
                 break;
             case TYPE_OBJECT:

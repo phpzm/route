@@ -131,18 +131,18 @@ class Engine extends Base
     private function search($routes, $uri, $options, $method, $index)
     {
         foreach ($routes as $path => $context) {
-            if (preg_match($path, $uri, $matches)) {
-                $options = array_merge($context['options'], $options);
-
-                if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
-                    array_shift($matches);
-                    return [
-                        'path' => $path,
-                        'callback' => $context['callback'],
-                        'data' => $this->parseData($matches, $context['labels']),
-                        'options' => $options
-                    ];
-                }
+            if (!preg_match($path, $uri, $matches)) {
+                continue;
+            }
+            $options = array_merge($context['options'], $options);
+            if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
+                array_shift($matches);
+                return [
+                    'path' => $path,
+                    'callback' => $context['callback'],
+                    'data' => $this->parseData($matches, $context['labels']),
+                    'options' => $options
+                ];
             }
         }
         return null;
