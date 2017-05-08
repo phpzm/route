@@ -24,8 +24,8 @@
   ],
   "require": {
     "php": ">=7.0",
-    "phpzm/http": "^1.1.5",
-    "phpzm/kernel": "^1.2.2"
+    "phpzm/http": "^1.1.6",
+    "phpzm/kernel": "^1.2.3"
   },
   "autoload": {
     "psr-4": {
