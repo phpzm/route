@@ -171,4 +171,19 @@ class Match extends Origin
     {
         return $this->options[$option] ?? null;
     }
+
+    /**
+     * @return mixed
+     */
+    protected function expose()
+    {
+        return [
+            'method' => $this->method,
+            'uri' => $this->uri,
+            'path' => $this->path,
+            'callback' => $this->callback,
+            'parameters' => $this->parameters,
+            'options' => $this->options,
+        ];
+    }
 }
