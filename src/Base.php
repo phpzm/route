@@ -16,7 +16,7 @@ class Base
     use Sharable;
 
     /**
-     * @var array honorable mention ['options']
+     * @var array
      */
     const ALL = ['get', 'post', 'put', 'patch', 'delete'];
 
@@ -34,11 +34,6 @@ class Base
      * @var array
      */
     protected $otherWise = [];
-
-    /**
-     * @var string
-     */
-    protected $preFlight = 'options';
 
     /**
      * @var bool
