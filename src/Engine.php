@@ -135,7 +135,8 @@ class Engine extends Base
                 continue;
             }
             $options = array_merge($context['options'], $options);
-            if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
+            // TODO: get method from cors `Access-Control-Request-Method`
+            if ($method === $index || ($method === $this->preFlight)) {
                 array_shift($matches);
                 return [
                     'path' => $path,
