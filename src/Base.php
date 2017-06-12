@@ -51,6 +51,12 @@ class Base
     protected $headers;
 
     /**
+     * (\w+)
+     * @var string
+     */
+    protected $captor = '(.*)';
+
+    /**
      *
      * Engine constructor.
      * @param bool $labels
@@ -144,12 +150,12 @@ class Base
         foreach ($peaces as $key => $value) {
             $peaces[$key] = str_replace('*', '(.*)', $peaces[$key]);
             if (strpos($value, ':') === 0) {
-                $peaces[$key] = '(\w+)';
+                $peaces[$key] = $this->captor;
                 $labels[] = substr($value, 1);
                 continue;
             }
             if (strpos($value, '{') === 0) {
-                $peaces[$key] = '(\w+)';
+                $peaces[$key] = $this->captor;
                 $labels[] = substr($value, 1, -1);
             }
         }
