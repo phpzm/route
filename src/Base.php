@@ -54,7 +54,7 @@ class Base
      * (\w+)
      * @var string
      */
-    protected $captor = '(.*)';
+    protected $captor = '([\w\.\-\ ]+)';
 
     /**
      *

@@ -4,6 +4,7 @@ namespace Simples\Route;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Simples\Error\SimplesRunTimeError;
 use Simples\Kernel\App;
 use Simples\Kernel\Container;
 
@@ -35,22 +36,28 @@ class Engine extends Base
                 }
                 break;
             case 'callable':
-                call_user_func_array($callback, Container::instance()->resolveFunctionParameters($callback, [$this]));
+                call_user_func_array(
+                    $callback,
+                    Container::instance()->resolveFunctionParameters($callback, ['router' => $this])
+                );
                 break;
         }
     }
 
     /**
      * @param string $filename
+     * @throws SimplesRunTimeError
      */
     public function load(string $filename)
     {
-        if (file_exists($filename)) {
-            /** @noinspection PhpIncludeInspection */
-            $callable = require_once $filename;
-            if (is_callable($callable)) {
-                call_user_func_array($callable, [$this]);
-            }
+        if (!file_exists($filename)) {
+            throw new SimplesRunTimeError("The file `{$filename}` was not found");
+        }
+
+        /** @noinspection PhpIncludeInspection */
+        $callable = require_once $filename;
+        if (is_callable($callable)) {
+            call_user_func_array($callable, [$this]);
         }
     }
 
@@ -97,8 +104,12 @@ class Engine extends Base
         $path = null;
         $callback = null;
         $data = [];
+
         foreach ($this->routes as $index => $routes) {
-            $found = $this->search($routes, $uri, $options, $method, $index);
+            if ($method !== $index) {
+                continue;
+            }
+            $found = $this->search($routes, $uri, $options);
             if ($found) {
                 App::log($found);
                 $path = $found['path'];
@@ -108,6 +119,7 @@ class Engine extends Base
                 break;
             }
         }
+
         $parameters = array_merge($data, ['data' => $this->data]);
 
         if (!$callback && isset($this->otherWise[$method])) {
@@ -124,26 +136,23 @@ class Engine extends Base
      * @param $routes
      * @param $uri
      * @param $options
-     * @param $method
-     * @param $index
      * @return array|null
      */
-    private function search($routes, $uri, $options, $method, $index)
+    private function search($routes, $uri, $options)
     {
         foreach ($routes as $path => $context) {
             if (!preg_match($path, $uri, $matches)) {
                 continue;
             }
             $options = array_merge($context['options'], $options);
-            if ($method === $index) {
-                array_shift($matches);
-                return [
-                    'path' => $path,
-                    'callback' => $context['callback'],
-                    'data' => $this->parseData($matches, $context['labels']),
-                    'options' => $options
-                ];
-            }
+            array_shift($matches);
+            $match = [
+                'path' => $path,
+                'callback' => $context['callback'],
+                'data' => $this->parseData($matches, $context['labels']),
+                'options' => $options
+            ];
+            return $match;
         }
         return null;
     }

@@ -2,6 +2,7 @@
 
 namespace Simples\Route;
 
+use Simples\Http\Response;
 use Simples\Kernel\App;
 
 /**
@@ -125,27 +126,34 @@ class Router extends Engine
     }
 
     /**
-     * @param $uri
-     * @param $class
-     * @param array $options
-     * @return $this
+     * @param mixed $path
+     * @param string $class
+     * @param array $settings
+     * @return Router
      */
-    public function api($uri, $class, $options = [])
+    public function api($path, $class, $settings = [])
     {
+        $type = ['type' => Response::CONTENT_TYPE_API];
         $resource = [
-            ['method' => 'GET', 'uri' => '', 'callable' => 'search'],
-            ['method' => 'GET', 'uri' => ':id', 'callable' => 'get'],
-            ['method' => 'PATCH', 'uri' => ':id/recycle', 'callable' => 'recycle'],
-            ['method' => 'POST', 'uri' => '', 'callable' => 'post'],
-            ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put'],
-            ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete']
+            ['method' => 'GET', 'uri' => '', 'callable' => 'search', 'type' => $type],
+            ['method' => 'GET', 'uri' => ':id', 'callable' => 'get', 'type' => $type],
+            ['method' => 'POST', 'uri' => '', 'callable' => 'post', 'type' => $type],
+            ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put', 'type' => $type],
+            ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete', 'type' => $type],
+            ['method' => 'DELETE', 'uri' => ':id/undo', 'callable' => 'recycle', 'type' => $type],
         ];
 
         $separator = App::options('separator');
 
         foreach ($resource as $item) {
             $item = (object)$item;
-            $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$separator}{$item->callable}", $options);
+
+            $method = $item->method;
+            $uri = "{$path}/{$item->uri}";
+            $callback = "{$class}{$separator}{$item->callable}";
+            $options = array_merge($settings, $item->type);
+
+            $this->on($method, $uri, $callback, $options);
         }
 
         return $this;
