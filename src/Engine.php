@@ -144,7 +144,7 @@ class Engine extends Base
             if (!preg_match($path, $uri, $matches)) {
                 continue;
             }
-            $options = array_merge($context['options'], $options);
+            $options = array_merge_recursive($context['options'], $options);
             array_shift($matches);
             $match = [
                 'path' => $path,
