@@ -141,6 +141,8 @@ class Router extends Engine
             ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put', 'type' => $type],
             ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete', 'type' => $type],
             ['method' => 'DELETE', 'uri' => ':id/undo', 'callable' => 'recycle', 'type' => $type],
+            ['method' => 'GET', 'uri' => ':id/previous', 'callable' => 'previous', 'type' => $type],
+            ['method' => 'GET', 'uri' => ':id/next', 'callable' => 'next', 'type' => $type],
         ];
 
         $separator = App::options('separator');
