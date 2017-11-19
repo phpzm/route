@@ -10,7 +10,7 @@
   ],
   "homepage": "https://github.com/phpzm/route",
   "license": "MIT",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "type": "package",
   "authors": [
     {
@@ -24,7 +24,7 @@
   ],
   "require": {
     "php": ">=7.0",
-    "phpzm/http": "^1.7.8",
+    "phpzm/http": "^1.7.10",
     "phpzm/kernel": "^1.11.0"
   },
   "autoload": {
