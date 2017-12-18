@@ -164,11 +164,12 @@ class Engine extends Base
      */
     private function parseData(array $matches, array $labels)
     {
-        $data = $matches;
-        if ($this->labels || (isset($options['labels']) ? $options['labels'] : false)) {
-            foreach ($labels as $key => $label) {
-                $data[$label] = $matches[$key];
-            }
+        if (!$this->labels) {
+            return $matches;
+        }
+        $data = [];
+        foreach ($labels as $key => $label) {
+            $data[$label] = $matches[$key];
         }
         return $data;
     }
