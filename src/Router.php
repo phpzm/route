@@ -129,10 +129,10 @@ class Router extends Engine
      * @param mixed $path <p>Route path URL</p>
      * @param string $class <p>Controller to handler all callable</p>
      * @param array $settings <p>List of $options to be all routes</p>
-     * @param array $options <p>Apply $options to a specific callable ['callable' => []]</p>
+     * @param array $callable <p>Apply $options to a specific callable ['callable' => []]</p>
      * @return Router
      */
-    public function api($path, $class, $settings = [], $options = [])
+    public function api($path, $class, $settings = [], $callable = [])
     {
         $type = ['type' => Response::CONTENT_TYPE_API];
         $resources = [
@@ -156,7 +156,7 @@ class Router extends Engine
             $callback = "{$class}{$separator}{$resource->callable}";
             $options = array_merge($settings, $type);
             /** @noinspection PhpAssignmentInConditionInspection */
-            if ($option = off($options, $resource->callable)) {
+            if ($option = off($callable, $resource->callable)) {
                 $options = array_merge($options, $option);
             }
 
