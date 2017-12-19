@@ -126,34 +126,39 @@ class Router extends Engine
     }
 
     /**
-     * @param mixed $path
-     * @param string $class
-     * @param array $settings
+     * @param mixed $path <p>Route path URL</p>
+     * @param string $class <p>Controller to handler all callable</p>
+     * @param array $settings <p>List of $options to be all routes</p>
+     * @param array $options <p>Apply $options to a specific callable ['callable' => []]</p>
      * @return Router
      */
-    public function api($path, $class, $settings = [])
+    public function api($path, $class, $settings = [], $options = [])
     {
         $type = ['type' => Response::CONTENT_TYPE_API];
-        $resource = [
-            ['method' => 'GET', 'uri' => '', 'callable' => 'search', 'type' => $type],
-            ['method' => 'GET', 'uri' => ':id', 'callable' => 'get', 'type' => $type],
-            ['method' => 'POST', 'uri' => '', 'callable' => 'post', 'type' => $type],
-            ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put', 'type' => $type],
-            ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete', 'type' => $type],
-            ['method' => 'DELETE', 'uri' => ':id/undo', 'callable' => 'recycle', 'type' => $type],
-            ['method' => 'GET', 'uri' => ':id/previous', 'callable' => 'previous', 'type' => $type],
-            ['method' => 'GET', 'uri' => ':id/next', 'callable' => 'next', 'type' => $type],
+        $resources = [
+            ['method' => 'GET', 'uri' => '', 'callable' => 'search'],
+            ['method' => 'GET', 'uri' => ':id', 'callable' => 'get'],
+            ['method' => 'POST', 'uri' => '', 'callable' => 'post'],
+            ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put'],
+            ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete'],
+            ['method' => 'DELETE', 'uri' => ':id/undo', 'callable' => 'recycle'],
+            ['method' => 'GET', 'uri' => ':id/previous', 'callable' => 'previous'],
+            ['method' => 'GET', 'uri' => ':id/next', 'callable' => 'next'],
         ];
 
         $separator = App::options('separator');
 
-        foreach ($resource as $item) {
-            $item = (object)$item;
+        foreach ($resources as $resource) {
+            $resource = (object)$resource;
 
-            $method = $item->method;
-            $uri = "{$path}/{$item->uri}";
-            $callback = "{$class}{$separator}{$item->callable}";
-            $options = array_merge($settings, $item->type);
+            $method = $resource->method;
+            $uri = "{$path}/{$resource->uri}";
+            $callback = "{$class}{$separator}{$resource->callable}";
+            $options = array_merge($settings, $type);
+            /** @noinspection PhpAssignmentInConditionInspection */
+            if ($option = off($options, $resource->callable)) {
+                $options = array_merge($options, $option);
+            }
 
             $this->on($method, $uri, $callback, $options);
         }
